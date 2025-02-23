@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Debris Counter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 2em auto;
+      padding: 0 1em;
+    }
+    h1, h2, h3 {
+      text-align: center;
+    }
+    .counter {
+      margin: 10px 0;
+      font-size: 1.2em;
+      text-align: center;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 5px;
+    }
+    textarea {
+      width: 100%;
+      margin-top: 10px;
+      font-family: monospace;
+    }
+    .checkbox-group {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .checkbox-group label {
+      margin-right: 15px;
+      font-size: 1em;
+    }
+    .section {
+      margin: 15px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Debris Counter</h1>
+  <div>
+    <h2>Increment Debris Counts</h2>
+    <div class="counter">
+      Foam-like debris (over 2 in): <span id="foamCount">0</span>
+      <button id="foamButton">+1</button>
+    </div>
+    <div class="counter">
+      Felt-like fibrous debris (over 2 in): <span id="feltCount">0</span>
+      <button id="feltButton">+1</button>
+    </div>
+    <div class="counter">
+      Pale and flaky debris (over 2 in): <span id="paleflakyCount">0</span>
+      <button id="paleflakyButton">+1</button>
+    </div>
+  </div>
+  
+  <div class="section">
+    <h3>Small Debris (under 2")</h3>
+    <div>
+      <strong>Material Type:</strong>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" name="smallDebrisType" value="foam">
+          Foam
+        </label>
+        <label>
+          <input type="checkbox" name="smallDebrisType" value="felt-like material">
+          Felt-like material
+        </label>
+        <label>
+          <input type="checkbox" name="smallDebrisType" value="white flaky material">
+          White flaky material
+        </label>
+      </div>
+    </div>
+    <div style="margin-top: 10px; text-align: center;">
+      <strong>Coverage:</strong>
+      <select id="smallDebrisCoverage">
+        <option value="">Select Coverage</option>
+        <option value="Light">Light</option>
+        <option value="Medium">Medium</option>
+        <option value="Heavy">Heavy</option>
+      </select>
+    </div>
+  </div>
+  
+  <div style="text-align: center;">
+    <h2>Report</h2>
+    <textarea id="report" rows="6" readonly></textarea>
+    <br>
+    <button id="copyReportButton">Copy Report</button>
+    <button id="clearAllButton">Clear All</button>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize counts
+      var counts = {
+        foam: 0,
+        felt: 0,
+        paleflaky: 0
+      };
+
+      // Update the display and report text
+      function updateDisplay() {
+        document.getElementById('foamCount').innerText = counts.foam;
+        document.getElementById('feltCount').innerText = counts.felt;
+        document.getElementById('paleflakyCount').innerText = counts.paleflaky;
+        updateReport();
+      }
+
+      // Generate the report text with a sentence for small debris details
+      function updateReport() {
+        // Gather all selected material types (checkboxes)
+        var checkedBoxes = document.querySelectorAll('input[name="smallDebrisType"]:checked');
+        var materials = [];
+        checkedBoxes.forEach(function(box) {
+          materials.push(box.value);
+        });
+        // Join multiple selections with " and "
+        var materialText = materials.length ? materials.join(" and ") : "Not set";
+        
+        var coverage = document.getElementById('smallDebrisCoverage').value || "Not set";
+        
+        var smallDebrisSentence;
+        if (coverage === "Not set" && materialText === "Not set") {
+          smallDebrisSentence = "Not set";
+        } else if (coverage === "Not set") {
+          smallDebrisSentence = "Unknown coverage of " + materialText;
+        } else if (materialText === "Not set") {
+          smallDebrisSentence = coverage + " coverage of unknown material";
+        } else {
+          smallDebrisSentence = coverage + " coverage of " + materialText;
+        }
+        
+        var reportText = "Foam-like debris (over 2 in): " + counts.foam + "\n" +
+                         "Felt-like fibrous debris (over 2 in): " + counts.felt + "\n" +
+                         "Pale and flaky debris (over 2 in): " + counts.paleflaky + "\n" +
+                         smallDebrisSentence;
+        document.getElementById('report').value = reportText;
+      }
+
+      // Increment function for debris counts
+      function increment(type) {
+        counts[type]++;
+        updateDisplay();
+      }
+
+      // Copy report to clipboard
+      function copyReport() {
+        var report = document.getElementById('report');
+        report.select();
+        report.setSelectionRange(0, 99999); // For mobile devices
+        document.execCommand("copy");
+        alert("Report copied to clipboard!");
+      }
+
+      // Clear all counts and selections
+      function clearAll() {
+        counts.foam = 0;
+        counts.felt = 0;
+        counts.paleflaky = 0;
+        
+        // Clear checkbox selections
+        var checkboxes = document.getElementsByName('smallDebrisType');
+        for (var i = 0; i < checkboxes.length; i++) {
+          checkboxes[i].checked = false;
+        }
+        
+        // Reset dropdown
+        document.getElementById('smallDebrisCoverage').value = "";
+        
+        updateDisplay();
+      }
+
+      // Bind event listeners to buttons and inputs
+      document.getElementById('foamButton').addEventListener('click', function() {
+        increment('foam');
+      });
+      document.getElementById('feltButton').addEventListener('click', function() {
+        increment('felt');
+      });
+      document.getElementById('paleflakyButton').addEventListener('click', function() {
+        increment('paleflaky');
+      });
+      document.getElementById('copyReportButton').addEventListener('click', copyReport);
+      document.getElementById('clearAllButton').addEventListener('click', clearAll);
+      
+      // Update report when checkbox or dropdown selections change
+      var checkboxes = document.getElementsByName('smallDebrisType');
+      for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].addEventListener('change', updateReport);
+      }
+      document.getElementById('smallDebrisCoverage').addEventListener('change', updateReport);
+
+      // Initialize display on page load
+      updateDisplay();
+    });
+  </script>
+</body>
+</html>
